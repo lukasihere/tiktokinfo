@@ -1,30 +1,28 @@
-import requests
-from bs4 import BeautifulSoup
+import asyncio
+from playwright.sync_api import sync_playwright
 
 def get_tiktok_user_data(username):
     url = f"https://www.tiktok.com/@{username}"
-    
-    # Set a user-agent to mimic a browser
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-    }
-    
-    # Fetch the page content
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Initialize Playwright to open a browser
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)  # headless means no UI
+        page = browser.new_page()
+        page.goto(url)
         
-        # Extract the user data (e.g., followers, likes, etc.)
-        # This part depends on the HTML structure of the TikTok page
-        # As an example, let's try extracting the title
-        title = soup.title.text
+        # Wait for content to load (you may need to adjust this based on the page structure)
+        page.wait_for_selector('h1')  # Example selector, you should adjust this to match TikTok's structure
         
-        return {"title": title}
-    else:
-        return {"error": "Failed to fetch user data"}
+        # Extract data, you can refine this based on what specific info you need
+        user_data = {
+            'title': page.title(),
+            'followers': page.inner_text('h1')  # You can replace 'h1' with a more specific selector for followers
+        }
+        
+        browser.close()
+        return user_data
 
 # Test the function
-username = "tiktok"
+username = "tiktok"  # Replace with any TikTok username
 data = get_tiktok_user_data(username)
 print(data)
