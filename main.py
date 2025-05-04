@@ -7,9 +7,14 @@ def fetch_tiktok_user_info(username):
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raises HTTPError if status code is 4xx/5xx
+        
+        # Print the raw response for debugging purposes
+        st.write("Raw API Response:", response.json())
+
+        # Parse the response data
         data = response.json()
 
-        # Return the data if found
+        # Check if the 'data' field exists in the response
         if data and 'data' in data:
             return data['data']
         else:
